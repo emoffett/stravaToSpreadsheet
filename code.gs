@@ -1,18 +1,13 @@
-// V2 - started 01/02/19 to address change in Strava API authentication
-
 // TODO:
-// good to start from blank
-// error messages at top of spreadsheet
-// how setup to run automatically?
-// look at publishing - GitHub, Google, Strava
-// generic version for just grabbing Strava information and dumping it in a spreadsheet
-// 'unlocked' version gets token from spreadsheet?
-// 'locked' version does not have stravaAccessToken, gets data from webserver (with own token to access webserver)
-// getting started sheet filled in
-// dashboard sheet
-// weekly/monthly summary sheets?
+// Put the instructions into a readme file, rather than inline here...
+// Make this script start from blank, rather than requiring the spreadsheet to look like Edd2 (priority)
+// Make a generic version for just grabbing generic Strava information and dumping it in a generic spreadsheet
+// Add a dashboard
+// Add more explanation to the resulting spreadsheet
+// Look at publishing better - GitHub, Google, Strava?
 
 
+// Section on setting up the OAuth2
 /*
 OAuth2 for Apps Script library to authenticate with Strava:
 https://github.com/gsuitedevs/apps-script-oauth2
@@ -32,11 +27,13 @@ If you are setting explicit scopes in your manifest file, ensure that the follow
 https://www.googleapis.com/auth/script.external_request
 */
 
+// Section on settin up Strava
+/*
+On your Strava API page, set your application's Authorization Callback Domain to be script.google.com
+Then update the next couple of lines with your Client Secret and you Client ID from the same Strava API page
+*/
 var CLIENT_ID = 'YOUR STRAVA CLIENT ID HERE - KEEP THE QUOTES';
 var CLIENT_SECRET = 'YOUR SECRET HERE - KEEP THE QUOTES';
-/*
-On your strava api page, set your application's Authorization Callback Domain to be script.google.com
-*/
 
 /**
  * Authorizes and makes a request to the Strava API.
@@ -44,7 +41,6 @@ On your strava api page, set your application's Authorization Callback Domain to
 function run() {
   var service = getService_();
   if (service.hasAccess()) {
-    Logger.log('have access');
     var url = 'https://www.strava.com/api/v3/activities';
     var response = UrlFetchApp.fetch(url, {
       headers: {
@@ -52,12 +48,9 @@ function run() {
       }
     });
     var result = JSON.parse(response.getContentText());
-    Logger.log(JSON.stringify(result, null, 2));
-    Logger.log('starting getStrava2');
+    // Logger.log(JSON.stringify(result, null, 2));
     getStrava2(service.getAccessToken());
-    Logger.log('ending getStrava2');
   } else {
-    Logger.log('do not have access');
     showSidebar();
 /*    var authorizationUrl = service.getAuthorizationUrl();
     Logger.log('Open the following URL and re-run the script: %s',
@@ -130,7 +123,7 @@ function showSidebar() {
     var page = template.evaluate();
     SpreadsheetApp.getUi().showSidebar(page);
   } else {
-    Logger.log('showSidebar has access');
+    // Logger.log('showSidebar has access');
     getStrava2(service.getAccessToken());
   }
 }
@@ -138,7 +131,6 @@ function showSidebar() {
 function getStrava2(stravaAccessToken) {
   // pick the most recent spreadsheet you looked at....
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  // get the right athlete, based on their stravaAccessToken, as listed in the spreadsheet
   var tab = ss.getSheetByName('Setup');
   ss.setActiveSheet(tab);
 
@@ -152,7 +144,7 @@ function getStrava2(stravaAccessToken) {
   var lastDate = tab.getRange(nextRow-1,startCol+1).getValue();
   var lastTime = Math.round(lastDate.getTime()/1000);
   var requestData = 'after=' + lastTime;
-  Logger.log(requestData);
+  // Logger.log(requestData);
 
   // create the request from the strava APR
   var url = 'https://www.strava.com/api/v3/athlete/activities?' + requestData;
@@ -166,12 +158,10 @@ function getStrava2(stravaAccessToken) {
     'method' : 'get',
     'headers' : headers
   };
-  Logger.log(url);
-  Logger.log(options);
   var response = UrlFetchApp.fetch(url, options);
-  Logger.log(response);
+  // Logger.log(response);
   var data = JSON.parse(response.getContentText());
-  //Logger.log(data);
+  // Logger.log(data);
   
   var rows = [];
   // date, datetime, distance (km), time, average heartrate  
@@ -183,7 +173,7 @@ function getStrava2(stravaAccessToken) {
       // is this due to where the Google server is located?!
       // will it still work during/after the clocks change? (5th Nov for PDT, 29th Oct for BST)
       date = Utilities.formatDate(new Date(working.start_date_local),"PDT" ,"dd/MM/YYYY");
-      Logger.log("start_date_local = " + working.start_date_local + " date = " + date);
+      // Logger.log("start_date_local = " + working.start_date_local + " date = " + date);
       datetime = new Date(working.start_date);
       distance = (working.distance/1000).toFixed(1);
       moving = Math.floor(working.moving_time/3600) + ':' + Math.floor((working.moving_time % 3600) / 60) + ':' + Math.floor(working.moving_time % 60);
