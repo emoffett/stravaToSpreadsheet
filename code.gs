@@ -34,6 +34,9 @@ https://www.googleapis.com/auth/script.external_request
 
 var CLIENT_ID = 'YOUR STRAVA CLIENT ID HERE - KEEP THE QUOTES';
 var CLIENT_SECRET = 'YOUR SECRET HERE - KEEP THE QUOTES';
+/*
+On your strava api page, set your application's Authorization Callback Domain to be script.google.com
+*/
 
 /**
  * Authorizes and makes a request to the Strava API.
@@ -188,85 +191,6 @@ function getStrava2(stravaAccessToken) {
     }
   }
 
-  // now to place a random set of characters in a spreadsheet somewhere on the Internet
-  if (rows.length > 0){
-    tab.getRange(nextRow,startCol+2,rows.length,1).setNumberFormat('HH:mm:ss');
-    tab.getRange(nextRow,startCol,rows.length,5).setValues(rows);
-  }
-}
-
-
-// V1
-
-// good to start from blank
-// error messages at top of spreadsheet
-// how setup to run automatically?
-// look at publishing - GitHub, Google, Strava
-// generic version for just grabbing Strava information and dumping it in a spreadsheet
-// 'unlocked' version gets token from spreadsheet?
-// 'locked' version does not have stravaAccessToken, gets data from webserver (with own token to access webserver)
-// getting started sheet filled in
-// dashboard sheet
-// weekly/monthly summary sheets?
-
-function getStrava() {
-  // pick the most recent spreadsheet you looked at....
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  // get the right athlete, based on their stravaAccessToken, as listed in the spreadsheet
-  var tab = ss.getSheetByName('Setup');
-  var stravaAccessToken = '6902e016af3617c9085821c825da785ae94f8715';
-  ss.setActiveSheet(tab);
-
-  // find the last cell with data
-  var tab = ss.getSheetByName('Run');
-  ss.setActiveSheet(tab); 
-  var bottomCell = tab.getRange("C3:C").getValues().filter(String).length;
-  var startCol = 1;
-  var startRow = 4;
-  var nextRow = tab.getRange(startRow,startCol,bottomCell).getLastRow();
-  var lastDate = tab.getRange(nextRow-1,startCol+1).getValue();
-  var lastTime = Math.round(lastDate.getTime()/1000);
-  var requestData = 'after=' + lastTime;
-  Logger.log(requestData);
-
-  // create the request from the strava APR
-  var url = 'https://www.strava.com/api/v3/athlete/activities?' + requestData;
-  // for more info on Stava setup, e.g. the names of other activity types, see http://strava.github.io/api/v3/activities/
-  var activityType = "Run";
-  var headers = {
-    'Authorization' : 'Bearer ' + stravaAccessToken
-  };
-  // Make a GET request and log the returned content.
-  var options = {
-    'method' : 'get',
-    'headers' : headers
-  };
-  Logger.log(url);
-  Logger.log(options);
-  var response = UrlFetchApp.fetch(url, options);
-  Logger.log(response);
-  var data = JSON.parse(response.getContentText());
-  //Logger.log(data);
-  
-  var rows = [];
-  // date, datetime, distance (km), time, average heartrate  
-  var working, date, datetime, distance, moving;
-  for (i=0; i<data.length; i++){
-    working = data[i];
-    if (working.type == activityType){
-      // PDT is picked so that runs after 17:00 aren't moved forward a date in the date conversion....
-      // is this due to where the Google server is located?!
-      // will it still work during/after the clocks change? (5th Nov for PDT, 29th Oct for BST)
-      date = Utilities.formatDate(new Date(working.start_date_local),"PDT" ,"dd/MM/YYYY");
-      Logger.log("start_date_local = " + working.start_date_local + " date = " + date);
-      datetime = new Date(working.start_date);
-      distance = (working.distance/1000).toFixed(1);
-      moving = Math.floor(working.moving_time/3600) + ':' + Math.floor((working.moving_time % 3600) / 60) + ':' + Math.floor(working.moving_time % 60);
-      rows.push([date, datetime, distance, moving, working.average_heartrate]);
-    }
-  }
-
-  // now to place a random set of characters in a spreadsheet somewhere on the Internet
   if (rows.length > 0){
     tab.getRange(nextRow,startCol+2,rows.length,1).setNumberFormat('HH:mm:ss');
     tab.getRange(nextRow,startCol,rows.length,5).setValues(rows);
