@@ -27,13 +27,22 @@ If you are setting explicit scopes in your manifest file, ensure that the follow
 https://www.googleapis.com/auth/script.external_request
 */
 
-// Section on settin up Strava
+// Section on setting up Strava
 /*
 On your Strava API page, set your application's Authorization Callback Domain to be script.google.com
 Then update the next couple of lines with your Client Secret and you Client ID from the same Strava API page
 */
 var CLIENT_ID = 'YOUR STRAVA CLIENT ID HERE - KEEP THE QUOTES';
 var CLIENT_SECRET = 'YOUR SECRET HERE - KEEP THE QUOTES';
+
+// Section on setting up Google
+/*
+Create a spreadsheet that looks like Edd2 (this step needs improving)
+Test it all works by running the 'run' fuction from the Google Scripts page
+Setup a trigger to automatically call 'run' - once an hour seems to work well, but every minute will keep you 
+within the Strava API limits, etc
+*/
+
 
 /**
  * Authorizes and makes a request to the Strava API.
